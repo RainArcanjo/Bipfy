@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Conferência de Bipes</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Conferência</h1>
+            <div class="header-actions">
+                <button type="button" class="btn btn-secondary" id="exportCsv">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Exportar CSV
+                </button>
+                <button type="button" class="btn btn-danger" id="clearAll">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    Limpar Tudo
+                </button>
+            </div>
+        </header>
+
+        <main class="main-grid">
+            <div class="left-column">
+                <section id="setupSection" class="card">
+                    <h2>Preparar Lista</h2>
+                    <div class="import-section">
+                        <label for="htmlInput">1. Importar de Arquivo HTML</label>
+                        <div class="input-group">
+                            <input type="file" id="htmlInput" accept=".html">
+                            <button type="button" class="btn" id="importHtmlBtn">Importar</button>
+                        </div>
+                        <div id="htmlPreview" class="feedback-text">Salve a página de etiquetas do ML como HTML.</div>
+                    </div>
+                    <div class="separator">ou</div>
+                    <div class="manual-add-section">
+                        <label>2. Adicionar Manualmente</label>
+                        <div class="form-grid">
+                            <input id="code" type="text" placeholder="Código do produto (SKU/EAN)">
+                            <input id="qty" type="number" min="1" value="1" placeholder="Qtde">
+                            <input id="name" type="text" placeholder="Nome do produto" class="full-width">
+                        </div>
+                         <div class="controls">
+                            <button type="button" class="btn" id="addBtn">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card">
+                    <div class="list-header">
+                        <h2>Lista de Produtos</h2>
+                        <button type="button" class="btn btn-success" id="startConf">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Iniciar Conferência
+                        </button>
+                    </div>
+                     <table id="listTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Foto</th>
+                                <th>Produto</th>
+                                <th>Qtde</th>
+                                <th>Conf.</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listBody"></tbody>
+                    </table>
+                    <div id="listEmpty" class="feedback-text empty-list">Nenhum produto na lista.</div>
+                </section>
+            </div>
+
+            <div class="right-column">
+                <section id="conferenceSection" class="card hidden">
+                    <div class="conference-header">
+                        <div id="modeBadge" class="badge">Modo: Preparação</div>
+                         <button type="button" class="btn btn-danger" id="stopConf" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                            Parar Conferência
+                        </button>
+                    </div>
+                    
+                    <div class="scan-box">
+                        <label for="scanInputManual">Leitor de Código de Barras</label>
+                        <input id="scanInputManual" type="text" placeholder="Aguardando bip..." autocomplete="off" disabled>
+                        <div class="feedback-text">Última leitura: <b id="lastScan">—</b></div>
+                    </div>
+
+                    <div id="globalStatus"></div>
+
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <span>Progresso Geral</span>
+                            <span id="globalCounts">0/0</span>
+                        </div>
+                        <div class="progress-bar"><i id="globalBar"></i></div>
+                    </div>
+                    
+                    <div class="details-section">
+                        <h3>Detalhes por Produto</h3>
+                        <div id="productsList"></div>
+                    </div>
+
+                    <div class="conference-actions">
+                         <button type="button" class="btn btn-secondary" id="undoBtn">Desfazer Último</button>
+                         <button type="button" class="btn btn-secondary" id="resetCounts">Resetar Contagens</button>
+                         <button type="button" class="btn btn-secondary" id="testSound">Testar Som</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
