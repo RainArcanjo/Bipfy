@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
@@ -33,7 +34,7 @@
                         <label for="htmlInput">1. Importar de Arquivo HTML</label>
                         <div class="input-group">
                             <input type="file" id="htmlInput" accept=".html">
-                            <button type="button" class="btn" id="importHtmlBtn">Importar</button>
+                            <button type="button" class="btn btn-primary" id="importHtmlBtn">Importar</button>
                         </div>
                         <div id="htmlPreview" class="feedback-text">Salve a página de etiquetas do ML como HTML.</div>
                     </div>
@@ -46,7 +47,7 @@
                             <input id="name" type="text" placeholder="Nome do produto" class="full-width">
                         </div>
                          <div class="controls">
-                            <button type="button" class="btn" id="addBtn">Adicionar à lista</button>
+                            <button type="button" class="btn btn-primary" id="addBtn">Adicionar à lista</button>
                         </div>
                     </div>
                 </section>
@@ -59,18 +60,20 @@
                             Iniciar Conferência
                         </button>
                     </div>
-                     <table id="listTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">Foto</th>
-                                <th>Produto</th>
-                                <th>Qtde</th>
-                                <th>Conf.</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listBody"></tbody>
-                    </table>
+                    <div class="scrollable-list">
+                        <table id="listTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">Foto</th>
+                                    <th>Produto</th>
+                                    <th>Qtde</th>
+                                    <th>Conf.</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listBody"></tbody>
+                        </table>
+                    </div>
                     <div id="listEmpty" class="feedback-text empty-list">Nenhum produto na lista.</div>
                 </section>
             </div>
@@ -79,7 +82,7 @@
                 <section id="conferenceSection" class="card hidden">
                     <div class="conference-header">
                         <div id="modeBadge" class="badge">Modo: Preparação</div>
-                         <button type="button" class="btn btn-danger" id="stopConf" disabled>
+                         <button type="button" class="btn btn-caution" id="stopConf" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                             Pausar Conferência
                         </button>
@@ -103,7 +106,7 @@
                     
                     <div class="details-section">
                         <h3>Detalhes por Produto</h3>
-                        <div id="productsList"></div>
+                        <div id="productsList" class="scrollable-list"></div>
                     </div>
 
                     <div class="conference-actions">
@@ -115,9 +118,8 @@
             </div>
         </main>
     </div>
-<footer>
-    <span> id="footerAppName">Bipfy</span> © <span id="footerYear">2025</span> - Versão <span id="footerVersion">1.0.0</span>
-</footer>
+
+    <footer id="appFooter"></footer>
     <script src="app.js"></script>
 </body>
 </html>

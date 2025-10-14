@@ -1,5 +1,8 @@
 // app.js
 document.addEventListener('DOMContentLoaded', () => {
+
+    const APP_VERSION = '1.0.0'; 
+
     // =================================================================
     // ELEMENTOS DO DOM (Interface)
     // =================================================================
@@ -33,15 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
         undoBtn: document.getElementById('undoBtn'),
         resetCountsBtn: document.getElementById('resetCounts'),
         testSoundBtn: document.getElementById('testSound'),
+        // Rodapé
+        appFooter: document.getElementById('appFooter'),
     };
 
     // =================================================================
     // ESTADO DA APLICAÇÃO
     // =================================================================
     let state = {
-        products: [], // {id, code, name, qty, count, completed, imageUrl}
+        products: [],
         conferenceActive: false,
-        historyStack: [], // Para a função de desfazer
+        historyStack: [],
         focusInterval: null
     };
 
@@ -154,65 +159,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderProductsPanel() {
-    DOM.productsList.innerHTML = '';
-    if (state.products.length === 0) {
-        DOM.productsList.innerHTML = '<div class="feedback-text empty-list">Nenhum produto na lista.</div>';
-        return;
-    }
-    for (const p of state.products) {
-        const pct = p.qty > 0 ? Math.round(((p.count || 0) / p.qty) * 100) : 0;
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'product-detail-item';
-        const imageHtml = p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" class="detail-img">` : '';
-        
-        // NOVO: Adicionamos o botão de zerar com o ícone e o data-id do produto
-        const resetButtonHtml = `
-            <button title="Zerar contagem deste item" class="btn-reset-item" data-id="${p.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L20.5 10a5 5 0 0 0-7.53-6.64"/>
-                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L3.5 14a5 5 0 0 0 7.53 6.64"/>
-                </svg>
-            </button>
-        `;
-
-        itemDiv.innerHTML = `
-            <div class="detail-content">
-                ${imageHtml}
-                <div class="detail-info">
-                    <div class="detail-header">
-                        <span class="detail-name">${p.name}</span>
-                        <div class="detail-actions">
-                            <span class="detail-counts">${p.count || 0}/${p.qty}</span>
-                            ${resetButtonHtml}
+        DOM.productsList.innerHTML = '';
+        if (state.products.length === 0) {
+            DOM.productsList.innerHTML = '<div class="feedback-text empty-list">Nenhum produto na lista.</div>';
+            return;
+        }
+        for (const p of state.products) {
+            const pct = p.qty > 0 ? Math.round(((p.count || 0) / p.qty) * 100) : 0;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'product-detail-item';
+            const imageHtml = p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" class="detail-img">` : '';
+            const resetButtonHtml = `
+                <button title="Zerar contagem deste item" class="btn-reset-item" data-id="${p.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L20.5 10a5 5 0 0 0-7.53-6.64"/>
+                        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L3.5 14a5 5 0 0 0 7.53 6.64"/>
+                    </svg>
+                </button>
+            `;
+            itemDiv.innerHTML = `
+                <div class="detail-content">
+                    ${imageHtml}
+                    <div class="detail-info">
+                        <div class="detail-header">
+                            <span class="detail-name">${p.name}</span>
+                            <div class="detail-actions">
+                                <span class="detail-counts">${p.count || 0}/${p.qty}</span>
+                                ${resetButtonHtml}
+                            </div>
                         </div>
+                        <div class="progress-bar"><i style="width:${pct}%"></i></div>
                     </div>
-                    <div class="progress-bar"><i style="width:${pct}%"></i></div>
                 </div>
-            </div>
-        `;
-        DOM.productsList.appendChild(itemDiv);
+            `;
+            DOM.productsList.appendChild(itemDiv);
+        }
+        if (!document.getElementById('dynamic-styles-details')) {
+            const style = document.createElement('style');
+            style.id = 'dynamic-styles-details';
+            style.innerHTML = `
+                .product-detail-item { padding: 8px 0; border-bottom: 1px solid var(--border-color); }
+                .detail-content { display: flex; align-items: center; gap: 10px; }
+                .detail-img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
+                .detail-info { flex: 1; }
+                .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+                .detail-name { font-size: 14px; font-weight: 500; padding-right: 8px; }
+                .detail-actions { display: flex; align-items: center; gap: 8px; }
+                .detail-counts { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+                .btn-reset-item { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+                .btn-reset-item:hover { background-color: var(--border-color); color: var(--text-primary); }
+                .btn-reset-item svg { width: 14px; height: 14px; }
+            `;
+            document.head.appendChild(style);
+        }
     }
-    // Adicionando estilos dinamicamente para este componente
-    if (!document.getElementById('dynamic-styles-details')) {
-        const style = document.createElement('style');
-        style.id = 'dynamic-styles-details';
-        // NOVO: Adicionamos estilos para o botão de zerar e o container de ações
-        style.innerHTML = `
-            .product-detail-item { padding: 8px 0; border-bottom: 1px solid var(--border-color); }
-            .detail-content { display: flex; align-items: center; gap: 10px; }
-            .detail-img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
-            .detail-info { flex: 1; }
-            .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-            .detail-name { font-size: 14px; font-weight: 500; padding-right: 8px; }
-            .detail-actions { display: flex; align-items: center; gap: 8px; }
-            .detail-counts { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-            .btn-reset-item { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-            .btn-reset-item:hover { background-color: var(--border-color); color: var(--text-primary); }
-            .btn-reset-item svg { width: 14px; height: 14px; }
-        `;
-        document.head.appendChild(style);
-    }
-}
 
     function updateGlobalProgress() {
         const totalQty = state.products.reduce((s, p) => s + p.qty, 0);
@@ -222,6 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.globalCounts.textContent = `${totalDone}/${totalQty}`;
     }
 
+    function initializeFooter() {
+        const currentYear = new Date().getFullYear();
+        const appName = 'Bipfy';
+        DOM.appFooter.innerHTML = `&copy; ${currentYear} ${appName}. Todos os direitos reservados. (v${APP_VERSION})`;
+    }
 
     // =================================================================
     // LÓGICA PRINCIPAL (Importação, Adição, Bipagem)
@@ -257,62 +262,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-   // app.js
-
-// ... (todo o código anterior permanece o mesmo) ...
-
-function handleScan(scannedCode) {
-    if (!scannedCode) return;
-    DOM.lastScan.textContent = scannedCode;
-    if (!state.conferenceActive) {
-        showToast('Conferência não iniciada');
-        sounds.error();
-        return;
-    }
-    
-    const prod = state.products.find(p => p.code.toUpperCase() === scannedCode.toUpperCase() && !p.completed);
-    
-    if (prod) {
-        prod.count = (prod.count || 0) + 1;
-        state.historyStack.push({ id: prod.id });
-
-        // =================================================================
-        // NOVO: LÓGICA PARA MOVER O ITEM PARA O TOPO DA LISTA
-        // =================================================================
-        const productIndex = state.products.findIndex(p => p.id === prod.id);
-        // Apenas move se o item não for o primeiro da lista
-        if (productIndex > 0) {
-            // 1. Remove o item da sua posição atual e o armazena
-            const [itemToMove] = state.products.splice(productIndex, 1);
-            // 2. Adiciona o item no início do array
-            state.products.unshift(itemToMove);
+    function handleScan(scannedCode) {
+        if (!scannedCode) return;
+        DOM.lastScan.textContent = scannedCode;
+        if (!state.conferenceActive) {
+            showToast('Conferência não iniciada');
+            sounds.error();
+            return;
         }
-        // =================================================================
-
-        if (prod.count >= prod.qty) {
-            prod.completed = true;
-            sounds.ok();
-            showToast(`${prod.name} concluído!`);
+        
+        const prod = state.products.find(p => p.code.toUpperCase() === scannedCode.toUpperCase() && !p.completed);
+        
+        if (prod) {
+            prod.count = (prod.count || 0) + 1;
+            state.historyStack.push({ id: prod.id });
+            const productIndex = state.products.findIndex(p => p.id === prod.id);
+            if (productIndex > 0) {
+                const [itemToMove] = state.products.splice(productIndex, 1);
+                state.products.unshift(itemToMove);
+            }
+            if (prod.count >= prod.qty) {
+                prod.completed = true;
+                sounds.ok();
+                showToast(`${prod.name} concluído!`);
+            } else {
+                sounds.item();
+            }
+            if (state.products.every(p => p.completed)) {
+                sounds.allDone();
+                DOM.globalStatus.innerHTML = `<div class="status ok">✅ Conferência concluída!</div>`;
+            }
         } else {
-            sounds.item();
+            sounds.error();
+            const alreadyCompleted = state.products.find(p => p.code.toUpperCase() === scannedCode.toUpperCase());
+            DOM.globalStatus.innerHTML = alreadyCompleted
+                ? `<div class="status ok">Item já concluído: ${alreadyCompleted.name}</div>`
+                : `<div class="status err">❌ Código não encontrado: ${scannedCode}</div>`;
         }
-        if (state.products.every(p => p.completed)) {
-            sounds.allDone();
-            DOM.globalStatus.innerHTML = `<div class="status ok">✅ Conferência concluída!</div>`;
-        }
-    } else {
-        sounds.error();
-        const alreadyCompleted = state.products.find(p => p.code.toUpperCase() === scannedCode.toUpperCase());
-        DOM.globalStatus.innerHTML = alreadyCompleted
-            ? `<div class="status ok">Item já concluído: ${alreadyCompleted.name}</div>`
-            : `<div class="status err">❌ Código não encontrado: ${scannedCode}</div>`;
+        
+        saveList();
+        renderAll();
     }
-    
-    saveList();
-    renderAll(); // renderAll() agora vai desenhar a lista na nova ordem
-}
-
-// ... (todo o resto do código permanece o mesmo) ...
 
 
     // =================================================================
@@ -333,7 +323,6 @@ function handleScan(scannedCode) {
             }
             let added = 0, skipped = 0;
             entries.forEach(e => {
-                // ALTERAÇÃO 3: Comparação case-insensitive para evitar duplicatas na importação.
                 if (state.products.find(p => p.code.toUpperCase() === e.code.toUpperCase())) {
                     skipped++;
                 } else {
@@ -357,7 +346,6 @@ function handleScan(scannedCode) {
             showToast('Preencha todos os campos corretamente.');
             return;
         }
-        // ALTERAÇÃO 4: Comparação case-insensitive para evitar duplicatas na adição manual.
         if (state.products.find(p => p.code.toUpperCase() === code.toUpperCase())) {
             showToast('Produto com este código já existe.');
             return;
@@ -464,69 +452,31 @@ function handleScan(scannedCode) {
         setTimeout(sounds.allDone, 500);
         setTimeout(sounds.error, 900);
     });
-
-    document.addEventListener('DOMContentLoaded', () => {
-
-    // NOVO: Coloque esta constante no topo do seu script
-    const APP_VERSION = '1.0.0'; // <-- ÚNICO LUGAR PARA MUDAR A VERSÃO!
-
-    // =================================================================
-    // ELEMENTOS DO DOM (Interface)
-    // =================================================================
-    const DOM = {
-        // ... (seus elementos DOM existentes) ...
-
-        // NOVO: Adicione os elementos do rodapé
-        footerYear: document.getElementById('footerYear'),
-        footerVersion: document.getElementById('footerVersion'),
-    };
-
-    // ... (resto do seu código, estado, áudio, helpers...) ...
-
-
-    // NOVO: Crie esta nova função junto com as outras de renderização
-    function initializeFooter() {
-        const currentYear = new Date().getFullYear();
-        DOM.footerYear.textContent = currentYear;
-        DOM.footerVersion.textContent = APP_VERSION;
-    }
-
-
-    // =================================================================
-    // INICIALIZAÇÃO
-    // =================================================================
-    loadList();
-    renderAll();
-    initializeFooter(); // NOVO: Chame a função de inicialização do rodapé aqui
-}); 
     
-    // Adicione este bloco dentro da seção EVENT LISTENERS do seu app.js
+    // NO LOCAL CORRETO: Listener para zerar item individual
+    DOM.productsList.addEventListener('click', (ev) => {
+        const resetButton = ev.target.closest('.btn-reset-item');
+        if (!resetButton) return;
 
-DOM.productsList.addEventListener('click', (ev) => {
-    const resetButton = ev.target.closest('.btn-reset-item');
-    if (!resetButton) return;
+        const productId = resetButton.dataset.id;
+        const productToReset = state.products.find(p => p.id === productId);
 
-    const productId = resetButton.dataset.id;
-    const productToReset = state.products.find(p => p.id === productId);
-
-    if (productToReset) {
-        if (confirm(`Tem certeza que deseja zerar a contagem de "${productToReset.name}"?`)) {
-            productToReset.count = 0;
-            productToReset.completed = false;
-            
-            // Opcional: Remove o histórico de bipagem apenas para este item
-            state.historyStack = state.historyStack.filter(item => item.id !== productId);
-
-            saveList();
-            renderAll();
-            showToast(`Contagem de "${productToReset.name}" foi zerada.`);
+        if (productToReset) {
+            if (confirm(`Tem certeza que deseja zerar a contagem de "${productToReset.name}"?`)) {
+                productToReset.count = 0;
+                productToReset.completed = false;
+                state.historyStack = state.historyStack.filter(item => item.id !== productId);
+                saveList();
+                renderAll();
+                showToast(`Contagem de "${productToReset.name}" foi zerada.`);
+            }
         }
-    }
-});
+    });
 
     // =================================================================
     // INICIALIZAÇÃO
     // =================================================================
     loadList();
     renderAll();
+    initializeFooter(); 
 });
