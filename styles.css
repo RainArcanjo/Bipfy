@@ -156,3 +156,37 @@ footer { width: 100%; padding: 24px; text-align: center; font-size: 12px; color:
 #productsList.scrollable-list {
     padding: 0 8px;
 }
+
+/* ================================================================= */
+/* ESTILOS PARA DISPOSITIVOS MÓVEIS (RESPONSIVIDADE)                 */
+/* ================================================================= */
+
+@media (max-width: 800px) { /* Este bloco será aplicado em telas com largura máxima de 800px */
+
+    /* 1. Transforma o layout de 2 colunas em 1 coluna */
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 2. Reduz o espaçamento geral da página */
+    .container {
+        padding: 16px;
+    }
+
+    /* 3. Ajusta o cabeçalho para telas menores */
+    header {
+        flex-direction: column; /* Coloca o logo acima dos botões */
+        align-items: flex-start; /* Alinha tudo à esquerda */
+        gap: 16px;
+    }
+
+    /* 4. Ajusta o formulário de adição manual */
+    .form-grid {
+        grid-template-columns: 1fr; /* Um campo por linha */
+    }
+
+    /* 5. Ajusta a fonte do logo para não ficar tão grande */
+    .logo-container h1 {
+        font-size: 22px;
+    }
+}
