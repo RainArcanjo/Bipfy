@@ -464,6 +464,41 @@ function handleScan(scannedCode) {
         setTimeout(sounds.allDone, 500);
         setTimeout(sounds.error, 900);
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+    // NOVO: Coloque esta constante no topo do seu script
+    const APP_VERSION = '1.0.0'; // <-- ÚNICO LUGAR PARA MUDAR A VERSÃO!
+
+    // =================================================================
+    // ELEMENTOS DO DOM (Interface)
+    // =================================================================
+    const DOM = {
+        // ... (seus elementos DOM existentes) ...
+
+        // NOVO: Adicione os elementos do rodapé
+        footerYear: document.getElementById('footerYear'),
+        footerVersion: document.getElementById('footerVersion'),
+    };
+
+    // ... (resto do seu código, estado, áudio, helpers...) ...
+
+
+    // NOVO: Crie esta nova função junto com as outras de renderização
+    function initializeFooter() {
+        const currentYear = new Date().getFullYear();
+        DOM.footerYear.textContent = currentYear;
+        DOM.footerVersion.textContent = APP_VERSION;
+    }
+
+
+    // =================================================================
+    // INICIALIZAÇÃO
+    // =================================================================
+    loadList();
+    renderAll();
+    initializeFooter(); // NOVO: Chame a função de inicialização do rodapé aqui
+}); 
     
     // Adicione este bloco dentro da seção EVENT LISTENERS do seu app.js
 
