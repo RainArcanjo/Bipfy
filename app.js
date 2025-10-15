@@ -1,7 +1,7 @@
 // app.js
 document.addEventListener('DOMContentLoaded', () => {
 
-    const APP_VERSION = '1.0.0'; 
+    const APP_VERSION = '1.0.3-compress'; 
 
     // =================================================================
     // ELEMENTOS DO DOM (Interface)
@@ -36,6 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
         undoBtn: document.getElementById('undoBtn'),
         resetCountsBtn: document.getElementById('resetCounts'),
         testSoundBtn: document.getElementById('testSound'),
+        // Funcionalidades QR Code
+        generateQrBtn: document.getElementById('generateQrBtn'),
+        scanQrBtn: document.getElementById('scanQrBtn'),
+        qrModal: document.getElementById('qrModal'),
+        closeModalBtn: document.getElementById('closeModalBtn'),
+        qrcodeCanvas: document.getElementById('qrcodeCanvas'),
+        qrReaderSection: document.getElementById('qrReaderSection'),
+        qrReader: document.getElementById('qr-reader'),
+        closeQrReaderBtn: document.getElementById('closeQrReaderBtn'),
         // Rodapé
         appFooter: document.getElementById('appFooter'),
     };
@@ -47,11 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         products: [],
         conferenceActive: false,
         historyStack: [],
-        focusInterval: null
+        focusInterval: null,
+        html5QrCode: null,
     };
 
     // =================================================================
-    // ÁUDIO
+    // ÁUDIO E UTILITÁRIOS
     // =================================================================
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function ensureAudio() { if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {}); }
@@ -73,9 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allDone: () => { tone(880, 0.12); setTimeout(() => tone(660, 0.12), 120); setTimeout(() => tone(520, 0.12), 260); }
     };
 
-    // =================================================================
-    // HELPERS E FUNÇÕES UTILITÁRIAS
-    // =================================================================
     const showToast = (text, duration = 2000) => {
         const el = document.createElement('div');
         el.className = 'toast';
@@ -139,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderList() {
         DOM.listBody.innerHTML = '';
         DOM.listEmpty.style.display = state.products.length === 0 ? 'block' : 'none';
+        DOM.generateQrBtn.style.display = state.products.length === 0 ? 'none' : 'inline-flex';
 
         for (const p of state.products) {
             const tr = document.createElement('tr');
@@ -194,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             DOM.productsList.appendChild(itemDiv);
         }
+        
         if (!document.getElementById('dynamic-styles-details')) {
             const style = document.createElement('style');
             style.id = 'dynamic-styles-details';
@@ -224,9 +233,122 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeFooter() {
         const currentYear = new Date().getFullYear();
-        const appName = 'Bipfy';
-        DOM.appFooter.innerHTML = `&copy; ${currentYear} ${appName}. Todos os direitos reservados. (v${APP_VERSION})`;
+        DOM.appFooter.innerHTML = `&copy; ${currentYear} Bipfy. Todos os direitos reservados. (v${APP_VERSION})`;
     }
+
+    // =================================================================
+    // LÓGICA DE QR CODE COM COMPRESSÃO
+    // =================================================================
+    function showQrCode() {
+        if (state.products.length === 0) {
+            showToast('Adicione produtos à lista para compartilhar.');
+            return;
+        }
+        DOM.qrcodeCanvas.innerHTML = '';
+        
+        const exportableProducts = state.products.map(({ code, name, qty, imageUrl }) => ({ code, name, qty, imageUrl }));
+        const jsonString = JSON.stringify(exportableProducts);
+
+        // 1. Comprimir os dados com Pako
+        const compressed = pako.deflate(jsonString);
+
+        // 2. Converter o resultado (Uint8Array) para uma string Base64
+        let binaryString = '';
+        compressed.forEach(byte => {
+            binaryString += String.fromCharCode(byte);
+        });
+        const base64String = btoa(binaryString);
+
+        // 3. Adicionar um prefixo para identificação
+        const finalString = `BIPFY_COMPRESSED::${base64String}`;
+
+        console.log(`Tamanho Original: ${jsonString.length} bytes`);
+        console.log(`Tamanho Comprimido: ${finalString.length} bytes`);
+
+        new QRCode(DOM.qrcodeCanvas, {
+            text: finalString,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+        DOM.qrModal.classList.remove('hidden');
+    }
+
+    function hideQrCode() {
+        DOM.qrModal.classList.add('hidden');
+    }
+
+    function startQrScanner() {
+        DOM.setupSection.classList.add('hidden');
+        DOM.qrReaderSection.classList.remove('hidden');
+
+        state.html5QrCode = new Html5Qrcode("qr-reader");
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            stopQrScanner();
+            try {
+                let jsonToParse = decodedText;
+
+                // 1. Verificar se o QR Code contém dados comprimidos
+                if (decodedText.startsWith('BIPFY_COMPRESSED::')) {
+                    const base64String = decodedText.substring('BIPFY_COMPRESSED::'.length);
+                    
+                    // 2. Decodificar de Base64 para string binária
+                    const binaryString = atob(base64String);
+
+                    // 3. Converter a string binária de volta para Uint8Array
+                    const compressed = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        compressed[i] = binaryString.charCodeAt(i);
+                    }
+
+                    // 4. Descomprimir com Pako
+                    jsonToParse = pako.inflate(compressed, { to: 'string' });
+                }
+
+                const importedProducts = JSON.parse(jsonToParse);
+                if (!Array.isArray(importedProducts)) throw new Error('O QR Code não contém uma lista válida.');
+
+                let added = 0, skipped = 0;
+                importedProducts.forEach(p => {
+                    if (!state.products.find(existing => existing.code.toUpperCase() === p.code.toUpperCase())) {
+                        state.products.push({ ...p, id: uid(), count: 0, completed: false });
+                        added++;
+                    } else {
+                        skipped++;
+                    }
+                });
+                
+                saveList();
+                renderAll();
+                showToast(`Importado: ${added} novo(s). Ignorados: ${skipped} (já na lista).`);
+                sounds.ok();
+
+            } catch (e) {
+                showToast(`Erro ao ler QR Code: ${e.message}`, 3000);
+                sounds.error();
+            }
+        };
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        state.html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+            .catch(err => {
+                showToast("Erro ao iniciar a câmera. Verifique as permissões.", 3000);
+            });
+    }
+
+    function stopQrScanner() {
+        if (state.html5QrCode && state.html5QrCode.isScanning) {
+            state.html5QrCode.stop().then(() => {
+                DOM.qrReaderSection.classList.add('hidden');
+                DOM.setupSection.classList.remove('hidden');
+            }).catch(err => console.error("Falha ao parar o leitor de QR.", err));
+        } else {
+            DOM.qrReaderSection.classList.add('hidden');
+            DOM.setupSection.classList.remove('hidden');
+        }
+    }
+
 
     // =================================================================
     // LÓGICA PRINCIPAL (Importação, Adição, Bipagem)
@@ -251,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const imageUrl = unit.pictures?.length > 0 ? unit.pictures[0].secure_url : null;
                 const productCode = unit.inventory_id;
                 if (!productCode) continue;
-
                 productsFound.push({ code: productCode, name: fullName, qty: unit.quantity, imageUrl: imageUrl });
             }
             return productsFound;
@@ -406,10 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     DOM.resetCountsBtn.addEventListener('click', () => {
         if (confirm('Zerar todas as contagens?')) {
-            state.products.forEach(p => {
-                p.count = 0;
-                p.completed = false;
-            });
+            state.products.forEach(p => { p.count = 0; p.completed = false; });
             state.historyStack = [];
             saveList();
             renderAll();
@@ -428,10 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     DOM.exportCsvBtn.addEventListener('click', () => {
-        if (state.products.length === 0) {
-            showToast('Nada para exportar.');
-            return;
-        }
+        if (state.products.length === 0) { return; }
         const rows = [['code', 'name', 'qty_expected', 'qty_scanned', 'completed']];
         state.products.forEach(p => rows.push([
             `"${p.code}"`, `"${p.name.replace(/"/g, '""')}"`, p.qty, p.count || 0, p.completed
@@ -440,9 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'conferencia.csv';
-        a.click();
+        a.href = url; a.download = 'conferencia.csv'; a.click();
         URL.revokeObjectURL(url);
     });
 
@@ -453,16 +566,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(sounds.error, 900);
     });
     
-    // NO LOCAL CORRETO: Listener para zerar item individual
     DOM.productsList.addEventListener('click', (ev) => {
         const resetButton = ev.target.closest('.btn-reset-item');
         if (!resetButton) return;
-
         const productId = resetButton.dataset.id;
         const productToReset = state.products.find(p => p.id === productId);
-
         if (productToReset) {
-            if (confirm(`Tem certeza que deseja zerar a contagem de "${productToReset.name}"?`)) {
+            if (confirm(`Zerar a contagem de "${productToReset.name}"?`)) {
                 productToReset.count = 0;
                 productToReset.completed = false;
                 state.historyStack = state.historyStack.filter(item => item.id !== productId);
@@ -473,6 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Listeners para QR Code
+    DOM.generateQrBtn.addEventListener('click', showQrCode);
+    DOM.closeModalBtn.addEventListener('click', hideQrCode);
+    DOM.scanQrBtn.addEventListener('click', startQrScanner);
+    DOM.closeQrReaderBtn.addEventListener('click', stopQrScanner);
+
+
     // =================================================================
     // INICIALIZAÇÃO
     // =================================================================
@@ -480,3 +597,4 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
     initializeFooter(); 
 });
+

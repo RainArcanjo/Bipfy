@@ -48,6 +48,7 @@ header h1 { font-size: 24px; font-weight: 600; }
 .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 16px;
     border-radius: 8px;
@@ -58,6 +59,7 @@ header h1 { font-size: 24px; font-weight: 600; }
     transition: background-color 0.2s;
     color: white;
 }
+.btn.full-width { width: 100%; }
 .btn svg { width: 16px; height: 16px; }
 
 .btn-primary { background-color: var(--accent); }
@@ -103,6 +105,7 @@ input::placeholder { color: #94a3b8; }
 
 .feedback-text { font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
 .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.list-header-actions { display: flex; gap: 8px; }
 
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; font-size: 14px; }
@@ -144,49 +147,68 @@ td .small { font-size: 12px; color: var(--text-secondary); }
 
 footer { width: 100%; padding: 24px; text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 24px; }
 
-/* MUDANÇA: NOVA CLASSE PARA CONTROLAR AMBAS AS LISTAS DE ROLAGEM */
 .scrollable-list {
-    max-height: 400px; /* Altura máxima unificada para as duas listas */
+    max-height: 400px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 8px;
 }
 
-/* Ajuste para a lista da direita não ter padding extra */
-#productsList.scrollable-list {
-    padding: 0 8px;
+#productsList.scrollable-list { padding: 0 8px; }
+
+/* ESTILOS PARA O MODAL E LEITOR DE QR CODE */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: var(--card-bg);
+    padding: 32px;
+    border-radius: 12px;
+    text-align: center;
+    position: relative;
+    max-width: 400px;
+}
+.modal-content h2 { margin-bottom: 8px; }
+.modal-content p { margin-bottom: 16px; color: var(--text-secondary); font-size: 14px; }
+.modal-close {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+#qrcodeCanvas {
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    display: inline-block;
+}
+#qrcodeCanvas img {
+    display: block;
+    margin: 0 auto;
 }
 
-/* ================================================================= */
-/* ESTILOS PARA DISPOSITIVOS MÓVEIS (RESPONSIVIDADE)                 */
-/* ================================================================= */
+#qr-reader video {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
 
-@media (max-width: 800px) { /* Este bloco será aplicado em telas com largura máxima de 800px */
 
-    /* 1. Transforma o layout de 2 colunas em 1 coluna */
-    .main-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* 2. Reduz o espaçamento geral da página */
-    .container {
-        padding: 16px;
-    }
-
-    /* 3. Ajusta o cabeçalho para telas menores */
-    header {
-        flex-direction: column; /* Coloca o logo acima dos botões */
-        align-items: flex-start; /* Alinha tudo à esquerda */
-        gap: 16px;
-    }
-
-    /* 4. Ajusta o formulário de adição manual */
-    .form-grid {
-        grid-template-columns: 1fr; /* Um campo por linha */
-    }
-
-    /* 5. Ajusta a fonte do logo para não ficar tão grande */
-    .logo-container h1 {
-        font-size: 22px;
-    }
+@media (max-width: 800px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .container { padding: 16px; }
+    header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    #generateQrBtn { display: none; } /* Esconde o botão de gerar no mobile */
 }

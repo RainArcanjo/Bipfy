@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Conferência de Bipes</title>
+    <title>Bipfy - Conferência de Produtos</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,8 +30,9 @@
             <div class="left-column">
                 <section id="setupSection" class="card">
                     <h2>Preparar Lista</h2>
+                    <!-- Seção de Importação de HTML -->
                     <div class="import-section">
-                        <label for="htmlInput">1. Importar de Arquivo HTML</label>
+                        <label for="htmlInput">1. Importar de Arquivo HTML (PC)</label>
                         <div class="input-group">
                             <input type="file" id="htmlInput" accept=".html">
                             <button type="button" class="btn btn-primary" id="importHtmlBtn">Importar</button>
@@ -39,8 +40,18 @@
                         <div id="htmlPreview" class="feedback-text">Salve a página de etiquetas do ML como HTML.</div>
                     </div>
                     <div class="separator">ou</div>
+                    <!-- Seção de Leitura de QR Code -->
+                    <div class="import-section">
+                        <label>2. Sincronizar com QR Code (Celular)</label>
+                        <button type="button" class="btn btn-primary full-width" id="scanQrBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                            Ler QR Code da Lista
+                        </button>
+                    </div>
+                    <div class="separator">ou</div>
+                     <!-- Seção de Adição Manual -->
                     <div class="manual-add-section">
-                        <label>2. Adicionar Manualmente</label>
+                        <label>3. Adicionar Manualmente</label>
                         <div class="form-grid">
                             <input id="code" type="text" placeholder="Código do produto (SKU/EAN)">
                             <input id="qty" type="number" min="1" value="1" placeholder="Qtde">
@@ -55,10 +66,15 @@
                 <section class="card">
                     <div class="list-header">
                         <h2>Lista de Produtos</h2>
-                        <button type="button" class="btn btn-success" id="startConf">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            Iniciar Conferência
-                        </button>
+                        <div class="list-header-actions">
+                            <button type="button" class="btn btn-secondary" id="generateQrBtn" title="Compartilhar com Celular">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            </button>
+                            <button type="button" class="btn btn-success" id="startConf">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                Iniciar
+                            </button>
+                        </div>
                     </div>
                     <div class="scrollable-list">
                         <table id="listTable">
@@ -79,6 +95,13 @@
             </div>
 
             <div class="right-column">
+                <!-- Seção do Leitor de QR Code -->
+                <section id="qrReaderSection" class="card hidden">
+                    <h2>Ler QR Code</h2>
+                    <div id="qr-reader" style="width: 100%;"></div>
+                    <button type="button" class="btn btn-danger" id="closeQrReaderBtn" style="margin-top: 16px;">Cancelar Leitura</button>
+                </section>
+
                 <section id="conferenceSection" class="card hidden">
                     <div class="conference-header">
                         <div id="modeBadge" class="badge">Modo: Preparação</div>
@@ -119,7 +142,24 @@
         </main>
     </div>
 
+    <!-- Modal para exibir o QR Code -->
+    <div id="qrModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="closeModalBtn" class="modal-close">&times;</button>
+            <h2>Compartilhar Lista com Celular</h2>
+            <p>Leia este QR Code com o Bipfy no seu celular para importar a lista.</p>
+            <div id="qrcodeCanvas"></div>
+        </div>
+    </div>
+
     <footer id="appFooter"></footer>
+    
+    <!-- Bibliotecas para QR Code e Compressão -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
     <script src="app.js"></script>
 </body>
 </html>
+
