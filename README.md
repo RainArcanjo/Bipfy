@@ -20,6 +20,8 @@ Você tem duas opções:
 1. **Demo Online**: Acesse [bipfy.vercel.app](https://bipfy.vercel.app)
 2. **Local**: Baixe o projeto e abra o `index.html` no navegador
 
+- Para importar os produtos do mercadolivre, é necessário salvar a listagem do seu envio full como HTML e importar ao Bipfy.
+
 ## Tecnologias
 
 Mantive simples de propósito:
