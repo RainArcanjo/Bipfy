@@ -24,12 +24,9 @@ Você tem duas opções:
 
 ## Tecnologias
 
-Mantive simples de propósito:
 - HTML5
 - CSS
 - JavaScript vanilla
-
-Nada de frameworks pesados - a ideia era algo leve que rodasse em qualquer dispositivo do depósito.
 
 ## Screenshot
 
